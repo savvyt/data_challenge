@@ -1,6 +1,7 @@
 import pandas as pd, json, requests, pandas_gbq, os, datetime
 from pandas.io import gbq
 from genson import SchemaBuilder
+from google.cloud import bigquery
 
 '''
 CONSTANT
@@ -42,49 +43,58 @@ you'll also need to designate the name and location of the table in the variable
 names below.
 '''
   
-def bq_load(table_name, value):
-  value.to_gbq(destination_table='{}.{}'.format(dataset_name, table_name), project_id=project_id, if_exists='replace')
+def bq_load(table_name, value, schema = None):
+  value.to_gbq(destination_table='{}.{}'.format(dataset_name, table_name), project_id=project_id, table_schema = schema, if_exists='replace')
   
 # def main(request):
 #     name = request.get_json().get('name')
 if __name__ == "__main__":
-    query_params = {'query': 'azure'
+    query_params = {'query': 'trondheim'
         , 'start_time': start_time
         , 'max_results' : 100
         , 'expansions':'author_id'
-        , 'user.fields' : 'username,id'
+        , 'user.fields' : 'id,name,username'
         , 'tweet.fields': 'author_id,public_metrics,created_at'
         , 'next_token' : {}}
 
     flag = True
     next_token = None
+    dump = []
+    # user = []
 
     json_response = connect_to_endpoint(search_url, query_params, next_token)
-    tweet_schema = get_schema(json_response['data'])
-    user_schema = get_schema(json_response['includes']['users'])
+    # tweet_schema = get_schema(json_response['data'])
+    # user_schema = get_schema(json_response['includes']['users'])
     
     while flag:
         result_count = json_response.get('meta').get('result_count') 
 
-        tweet = pd.DataFrame(json_response['data'])
-        user = pd.DataFrame(json_response['includes']['users'])
+        # tweet = pd.DataFrame(json_response['data'])
+        # user = pd.DataFrame(json_response['includes']['users'])
 
         if 'next_token' in json_response['meta']:
             next_token = json_response['meta']['next_token']
-            tweet = pd.concat([tweet, pd.DataFrame(json_response['data'])])
-            user = pd.concat([user, pd.DataFrame(json_response['includes']['users'])])
+            dump = dump + json_response
+            # tweet = tweet.append(json_response['data'])
+            # user = user.append(json_response['includes']['users'])
+            # tweet = pd.concat([tweet, pd.DataFrame(json_response['data'])])
+            # user = pd.concat([user, pd.DataFrame(json_response['includes']['users'])])
         
         else:
-            len_tweet = len(pd.DataFrame(json_response['data']))
-            len_user = len(pd.DataFrame(json_response['includes']['users']))
+            # len_tweet = len(pd.DataFrame(json_response['data']))
+            # len_user = len(pd.DataFrame(json_response['includes']['users']))
+            len_tweet = len(json_response['data'])
             if len_tweet > 0:
-                tweet = pd.concat([tweet, pd.DataFrame(json_response['data'])])
-            if len_user > 0:
-                user = pd.concat([user, pd.DataFrame(json_response['includes']['users'])])
+                dump = dump + json_response
+                # tweet = tweet + (json_response['data'])
+                # tweet = pd.concat([tweet, pd.DataFrame(json_response['data'])])
+                # user = user + (json_response['includesk']['users'])
+                # user = pd.concat([user, pd.DataFrame(json_response['includes']['users'])])
 
             flag = False
     
-    bq_load('tweet', tweet.astype(str).drop_duplicates())
-    bq_load('user', user.astype(str).drop_duplicates())
+    bq_load('dump1', pd.DataFrame(dump))
+    # bq_load('tweet', user, user_schema)
+    # bq_load('user', user.astype(str).drop_duplicates())
 
     # return f"Counting for keyword: {name} "
