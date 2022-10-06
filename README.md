@@ -46,34 +46,29 @@ There are several ways to satisfy the requirement:
 1. Configure the dashboard, by connecting to the BigQuery database with DataStudio
 
 [Reference: developer-guide--twitter-api-toolkit-for-google-cloud](https://developer.twitter.com/en/docs/tutorials/developer-guide--twitter-api-toolkit-for-google-cloud1)
-### 4.Cloud Functions
+### 4. Cloud Functions
 [Reference: serverless-twitter-bot-with-google-cloud](https://itnext.io/serverless-twitter-bot-with-google-cloud-35d370676f7) <br>
 [Reference: cloud-function-to-publish-messages-to-pub-sub](https://medium.com/@chandrapal/creating-a-cloud-function-to-publish-messages-to-pub-sub-154c2f472ca3)
 
+### Comparison:
+||VM   | Local machine  |  App Engine |   Cloud Function|
+|---|---|---|---|---|
+|Connection|can be 24/7 except during maintenance window | Not always connected  |Can get disconnected and must restart the process by establishing a new connection. Additionally, to ensure that you do not miss any data, you may need to utilize a Redundant Connection, Backfill, or a Replay stream to mitigate or recover data from disconnections from the stream.|Streaming is problematic because you have to be always connected. And with serverless product you have timeout concern (9 minutes for Cloud Functions V1, 60 minutes for Cloud Run and Cloud Functions V2). However you can imagine to invoke regularly your serverless product, stay connected for a while (let say 1h) and schedule trigger every hour.
+   |
 
-Comparison:
-
-
-
-VM
-Local machine
-App Engine
-Cloud Function
-Connection
-24/7
-Not always connected
-Can get disconnected and must restart the process by establishing a new connection.
-Additionally, to ensure that you do not miss any data, you may need to utilize a Redundant Connection, Backfill, or a Replay stream to mitigate or recover data from disconnections from the stream.
-Streaming is problematic because you have to be always connected. And with serverless product you have timeout concern (9 minutes for Cloud Functions V1, 60 minutes for Cloud Run and Cloud Functions V2).
-
-However you can imagine to invoke regularly your serverless product, stay connected for a while (let say 1h) and schedule trigger every hour.
-
-consider microbatches where you invoke every minute your Cloud Functions and to get all the messages for the past minutes.
-
-
-
-
-Solution
+## Solution
+```mermaid
+graph TB
+A(Cloud Function POST search term) -->|query|B[Pub/Sub]
+B-->B1(Cloud Function counts/recent)
+B-->B2(Cloud Function search/recent)
+B-->B3(Cloud Function search/stream)
+B1-->C[Big Query tweet.twitter and tweet.user]
+B2-->C
+B3-->C
+C-->D(Data Studio) 
+click A href "https://console.cloud.google.com/functions/details/europe-north1/pubsub-test-keyword?env=gen2&project=extended-study-364220" "pubsub-test-keyword"
+```
 
 User input HTTPS Post to Cloud Function pubsub-test-keyword
 Function will publish a message to a Pub/Sub with topic name projects/extended-study-364220/topics/pubsub-test-keyword  and create an arc event. 
