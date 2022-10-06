@@ -1,0 +1,8 @@
+uuid,user_id,user_created,created,name,email
+07dc7af6-0dcd-47f9-813c-baba494987ba,1,2021-12-25 15:30:00 UTC,2022-01-25 15:30:00 UTC,John Doe,john@gmail.com
+5673b55a-84cd-4147-b825-50ee02c2d8c0,1,2021-12-25 15:30:00 UTC,2022-03-25 15:30:00 UTC,John Doe,john1@gmail.com
+bcbd7110-777b-4e4b-87e9-81773e3531ee,1,2021-12-25 15:30:00 UTC,2022-06-25 15:30:00 UTC,John Doe,john2@gmail.com
+dceb25db-c7ca-4ebc-a137-c436d1263930,1,2021-12-25 15:30:00 UTC,2022-10-03 20:49:41.563139 UTC,John Doe,john3@gmail.com
+e705478a-008c-4c72-b259-47122be48596,2,2022-03-25 15:30:00 UTC,2022-10-03 20:49:41.563139 UTC,Ana Doe,ana1@gmail.com
+700b671e-4d0e-4fba-9c15-cc1a92e75b0e,2,2022-03-25 15:30:00 UTC,2022-03-30 15:30:00 UTC,Ana Fox,ana@gmail.com
+4324d08d-8f2a-4efc-b479-7c59a77c1ba0,2,2022-03-25 15:30:00 UTC,2022-08-25 15:30:00 UTC,Ana Doe,ana@gmail.com

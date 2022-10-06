@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Certificate
+extended-study-364220-bc56e798d971.json
