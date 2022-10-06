@@ -53,8 +53,7 @@ There are several ways to satisfy the requirement:
 ### Comparison:
 ||VM   | Local machine  |  App Engine |   Cloud Function|
 |---|---|---|---|---|
-|Connection|can be 24/7 except during maintenance window | Not always connected  |Can get disconnected and must restart the process by establishing a new connection. Additionally, to ensure that you do not miss any data, you may need to utilize a Redundant Connection, Backfill, or a Replay stream to mitigate or recover data from disconnections from the stream.|Streaming is problematic because you have to be always connected. And with serverless product you have timeout concern (9 minutes for Cloud Functions V1, 60 minutes for Cloud Run and Cloud Functions V2). However you can imagine to invoke regularly your serverless product, stay connected for a while (let say 1h) and schedule trigger every hour.
-   |
+|Connection|can be 24/7 except during maintenance window | Not always connected  |Can get disconnected and must restart the process by establishing a new connection. Additionally, to ensure that you do not miss any data, you may need to utilize a Redundant Connection, Backfill, or a Replay stream to mitigate or recover data from disconnections from the stream.|Streaming is problematic because you have to be always connected. And with serverless product you have timeout concern (9 minutes for Cloud Functions V1, 60 minutes for Cloud Run and Cloud Functions V2). However you can imagine to invoke regularly your serverless product, stay connected for a while (let say 1h) and schedule trigger every hour.|
 
 ## Solution
 ```mermaid
@@ -70,25 +69,16 @@ C-->D(Data Studio)
 click A href "https://console.cloud.google.com/functions/details/europe-north1/pubsub-test-keyword?env=gen2&project=extended-study-364220" "pubsub-test-keyword"
 ```
 
-User input HTTPS Post to Cloud Function pubsub-test-keyword
-Function will publish a message to a Pub/Sub with topic name projects/extended-study-364220/topics/pubsub-test-keyword  and create an arc event. 
-Under the hood:
-The event will be written from above topic into a subscription projects/extended-study-364220/subscriptions/eventarc-europe-north1-function-1-474919-sub-036 that has push method with end point https://function-1-nibljnhwbq-lz.a.run.app?__GCP_CloudEventsMode=CUSTOM_PUBSUB_projects%2Fextended-study-364220%2Ftopics%2Fpubsub-test-keyword. This end point has an audience https://function-1-nibljnhwbq-lz.a.run.app which is the URL of the next function.
-s
+1. User input HTTPS Post to Cloud Function pubsub-test-keyword
+1. Function will publish a message to a Pub/Sub with topic name projects/extended-study-364220/topics/pubsub-test-keyword  and create an arc event. <br>
+Under the hood: <br>
+The event will be written from above topic into a subscription projects/extended-study-364220/subscriptions/eventarc-europe-north1-function-1-474919-sub-036 that has push method with end point https://function-1-nibljnhwbq-lz.a.run.app?__GCP_CloudEventsMode=CUSTOM_PUBSUB_projects%2Fextended-study-364220%2Ftopics%2Fpubsub-test-keyword. <br>This end point has an audience https://function-1-nibljnhwbq-lz.a.run.app which is the URL of the next function.
+1. 
 
+### TO DO
+1. Fix timeout with Cloud Function. Perhaps deploy in Kubernetes
+2. Apply Airflow or Dataflow to automate and better tracking the ETL job
 
-Working topic:
-https://console.cloud.google.com/cloudpubsub/topic/detail/pubsub-test?cloudshell=false&project=extended-study-364220&tab=messages
-
-
-TO DO
-Fix timeout with Cloud Function. Perhaps deploy in Kubernetes
-Apply Airflow or Dataflow to automate and better tracking the ETL job
-
-Challenges
-Cannot use Workflow to input variable to another cloud function due to error 500 link
-These intermittent 500s are due to requests timing out in the pending queue while waiting for a clone to be able to service the request. This is quite common for GCF apps when they attempt to scale up extremely rapidly. The best approach would be to configure your workload so that they don't have such sharp spikes from ~0 QPS - e.g. if you ramp up traffic gradually over the course of a minute they'll be far less likely to see these errors.
-
-GCF's issues with scaling performance was a top priority and some improvements has been performed for rapid scaling
-s
-
+### Challenges
+1. Unable to use Workflow to input variable to another cloud function due to error 500 link
+<br>These intermittent 500s are due to requests timing out in the pending queue while waiting for a clone to be able to service the request. This is quite common for GCF apps when they attempt to scale up extremely rapidly. The best approach would be to configure your workload so that they don't have such sharp spikes from ~0 QPS - e.g. if you ramp up traffic gradually over the course of a minute they'll be far less likely to see these errors.
