@@ -1,13 +1,16 @@
-import argparse
-import json
-import typing
+import argparse, json, typing, os
 
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.transforms.combiners import CountCombineFn
 
-
+'''
+Constant
+'''
+project_id = os.getenv('GOOGLE_CLOUD_PROJECT')
+bearer = os.getenv('bearer')
+topic_id = 'pubsub-stream-filter'
 class GetTimestamp(beam.DoFn):
     def process(self, element, window=beam.DoFn.WindowParam):
         window_start = window.start.to_utc_datetime().strftime("%Y-%m-%dT%H:%M:%S")
@@ -38,7 +41,7 @@ def run():
 
     output_table_name = "raw_tweets"
     agg_output_table_name = "minute_level_counts"
-    dataset = "twitter_data"
+    dataset = "part2"
 
     window_size = 60
 
@@ -55,13 +58,7 @@ def run():
             },
             {
                 "name": "id",
-                "type": "STRING",
-                "mode": "NULLABLE"
-            },
-            {
-                "name": "lang",
-                "type": "STRING",
-                "mode": "NULLABLE"
+                "type": "STRING"
             },
             {
                 "name": "stream_rule",
@@ -72,27 +69,39 @@ def run():
                 "type": "STRING",
             },
             {
+                "name": "public_metrics",
+                "type": "RECORD",
+                "mode": "NULLABLE",
+                "fields": [
+                    {
+                        "name": "like_count",
+                        "type": "INT",
+                        "mode": "NULLABLE"
+                    },
+                    {
+                        "name": "quote_count",
+                        "type": "INT",
+                        "mode": "NULLABLE"
+                    },
+                    {
+                        "name": "reply_count",
+                        "type": "INT",
+                        "mode": "NULLABLE"
+                    },
+                    {
+                        "name": "retweet_count",
+                        "type": "INT",
+                        "mode": "NULLABLE"
+                    },
+                ]
+            },
+            {
                 "name": "user",
                 "type": "RECORD",
                 "mode": "NULLABLE",
                 "fields": [
                     {
-                        "name": "created_at",
-                        "type": "STRING",
-                        "mode": "NULLABLE"
-                    },
-                    {
-                        "name": "description",
-                        "type": "STRING",
-                        "mode": "NULLABLE"
-                    },
-                    {
                         "name": "id",
-                        "type": "STRING",
-                        "mode": "NULLABLE"
-                    },
-                    {
-                        "name": "location",
                         "type": "STRING",
                         "mode": "NULLABLE"
                     },
@@ -116,10 +125,6 @@ def run():
             {
                 "name": "timestamp",
                 "type": "STRING"
-            },
-            {
-                "name": "language",
-                "type": "STRING",
             },
             {
                 "name": "tweet_count",
@@ -148,8 +153,7 @@ def run():
     # aggregate tweets by window and write to BQ
     (raw_tweets
         | "Window" >> beam.WindowInto(beam.window.FixedWindows(window_size))
-        | "Aggregate per language" >> beam.GroupBy(lang=lambda x: x["lang"])
-                                          .aggregate_field(lambda x: x["lang"], CountCombineFn(), 'tweet_count')
+        | "Aggregate per language" >> beam.combiners.Count.Globally()
         | "Add Timestamp" >> beam.ParDo(GetTimestamp())
         | "Write agg to bigquery" >> beam.io.WriteToBigQuery(
             agg_output_table_name,
@@ -161,7 +165,7 @@ def run():
         )
      )
 
-    p.run().wait_until_finish()
+    p.run().wait_until_finish(300000)
 
 
 if __name__ == "__main__":
