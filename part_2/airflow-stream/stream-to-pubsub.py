@@ -5,10 +5,8 @@ from google.cloud import pubsub_v1
 CONSTANT
 '''
 project_id=os.getenv('GOOGLE_CLOUD_PROJECT')
-dataset_name=os.getenv('dataset_name') # BigQuery dataset (similar to database)
 bearer=os.getenv('bearer')
-search_url = "https://api.twitter.com/2/tweets/search/recent"  # Twitter API end point
-stream_rule = 'Google'
+stream_rule = 'trondheim'
 topic_id = 'pubsub-stream-filter'
 
 def write_to_pubsub(data, stream_rule):
@@ -22,7 +20,6 @@ def write_to_pubsub(data, stream_rule):
     )
     print(future.result())
 
-
 class Client(tweepy.StreamingClient):
     def __init__(self, bearer_token, stream_rule):
         super().__init__(bearer_token)
@@ -32,8 +29,10 @@ class Client(tweepy.StreamingClient):
     def on_response(self, response):
         tweet_data = response.data.data
         user_data = response.includes['users'][0].data
+        metrics_fiels = response.data.public_metrics
         result = tweet_data
         result["user"] = user_data
+        result['metric'] = metrics_fiels
 
         write_to_pubsub(result, self.stream_rule)
 
