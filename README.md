@@ -18,6 +18,8 @@ Create a proof-of-concept for a tool that allows the user to specify a search te
 The specific insights the tool should provide in its output are:
 1. What is the total count of tweets matching the search term seen so far?
 1. How many tweets containing the search term were there in the last 1, 5 and 15 minutes?
+
+**not-finished**
 1. What are the ten most frequent terms (excluding the search term) that appear in tweets containing the search term over the last 1, 5 and 15 minutes?
 1. Within tweets matching the search term, who were the top ten tweeps (Twitter users) who tweeted the most in the last 1, 5 and 15 minutes?
 1. What is the sentiment of tweets matching the search term over the last 1, 5 and 15 minutes?
@@ -55,6 +57,13 @@ There are several ways to satisfy the requirement:
 |---|---|---|---|---|
 |Connection|can be 24/7 except during maintenance window | Not always connected  |Can get disconnected and must restart the process by establishing a new connection. Additionally, to ensure that you do not miss any data, you may need to utilize a Redundant Connection, Backfill, or a Replay stream to mitigate or recover data from disconnections from the stream.|Streaming is problematic because you have to be always connected. And with serverless product you have timeout concern (9 minutes for Cloud Functions V1, 60 minutes for Cloud Run and Cloud Functions V2). However you can imagine to invoke regularly your serverless product, stay connected for a while (let say 1h) and schedule trigger every hour.|
 
+## Prereqs
+You'll need: 1) Twitter Developer credentials and 2) a GCP account set up.
+
+Once you have a Twitter Developer account, you'll need an app, API consumer key (and secret), access token (and secret), and bearer token.
+
+(You may need to enable to the relevant APIs on your GCP account - Compute Engine, GCS, Dataflow, and BigQuery. You can do that using the search bar at the top of the GCP interface.)
+
 ## Solution
 ```mermaid
 graph TB
@@ -69,15 +78,27 @@ C-->D(Data Studio)
 click A href "https://console.cloud.google.com/functions/details/europe-north1/pubsub-test-keyword?env=gen2&project=extended-study-364220" "pubsub-test-keyword"
 ```
 
-1. User input HTTPS Post to Cloud Function pubsub-test-keyword
-1. Function will publish a message to a Pub/Sub with topic name projects/extended-study-364220/topics/pubsub-test-keyword  and create an arc event. <br>
+### 1. Create [Cloud Function Keyword](part_2/function-keyword)
+User is expected to input HTTPS Post to the function. Example from Google Cloud Shell:
+```
+curl -m 70 -X POST https://pubsub-test-keyword-nibljnhwbq-lz.a.run.app \
+-H "Authorization: bearer $(gcloud auth print-identity-token)" \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "trondheim"
+}'
+````
+### 2. Create Pub/Sub topic. 
+Create a `Pub/Sub` topic and name it accordingly (something like `twitter` will work). Function `Cloud Function Keyword` will publish a message to the topic. From the GUI, then press the Trigger Cloud Function button. It will create a new Function where you could then modify and insert your [Function Count Recent](part_2/function-count-recent). Create another trigger and insert your [Function Search Recent](part_2/function-search-recent) to the newly created Function.
+
 Under the hood: <br>
-The event will be written from above topic into a subscription projects/extended-study-364220/subscriptions/eventarc-europe-north1-function-1-474919-sub-036 that has push method with end point https://function-1-nibljnhwbq-lz.a.run.app?__GCP_CloudEventsMode=CUSTOM_PUBSUB_projects%2Fextended-study-364220%2Ftopics%2Fpubsub-test-keyword. <br>This end point has an audience https://function-1-nibljnhwbq-lz.a.run.app which is the URL of the next function.
-1. 
+Google will automatically push the message from your topic into an automatically created Subscription. Then a 'Cloud Run' will push your message from the 'Subscription' to the `Function Count Recent`.
+### 3. Create BigQuery dataset and table
+[Function search recent](part_2/function-search-recent/main.py) will write your tweets and users in the past 15 minutes to BigQuery, so it would be necessary to create the dataset and tables beforehand. Update the [main.py](part_2/function-search-recent/main.py) if you decided to give different name to your tables.
 
 ### TO DO
-1. Fix timeout with Cloud Function. Perhaps deploy in Kubernetes
-2. Apply Airflow or Dataflow to automate and better tracking the ETL job
+1. Fix timeout with Cloud Function
+1. Apply Airflow or Dataflow to automate and better tracking the ETL job
 
 ### Challenges
 1. Unable to use Workflow to input variable to another cloud function due to error 500 link
