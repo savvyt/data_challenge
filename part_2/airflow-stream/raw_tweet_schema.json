@@ -1,0 +1,74 @@
+{
+   "fields": [
+       {
+           "name": "author_id",
+           "type": "STRING"
+       },
+       {
+           "name": "created_at",
+           "type": "STRING",
+           "mode": "NULLABLE"
+       },
+       {
+           "name": "id",
+           "type": "STRING"
+       },
+       {
+           "name": "stream_rule",
+           "type": "STRING",
+       },
+       {
+           "name": "text",
+           "type": "STRING",
+       },
+       {
+           "name": "public_metrics",
+           "type": "RECORD",
+           "mode": "NULLABLE",
+           "fields": [
+               {
+                   "name": "like_count",
+                   "type": "INT",
+                   "mode": "NULLABLE"
+               },
+               {
+                   "name": "quote_count",
+                   "type": "INT",
+                   "mode": "NULLABLE"
+               },
+               {
+                   "name": "reply_count",
+                   "type": "INT",
+                   "mode": "NULLABLE"
+               },
+               {
+                   "name": "retweet_count",
+                   "type": "INT",
+                   "mode": "NULLABLE"
+               }
+           ]
+       },
+       {
+           "name": "user",
+           "type": "RECORD",
+           "mode": "NULLABLE",
+           "fields": [
+               {
+                   "name": "id",
+                   "type": "STRING",
+                   "mode": "NULLABLE"
+               },
+               {
+                   "name": "name",
+                   "type": "STRING",
+                   "mode": "NULLABLE"
+               },
+               {
+                   "name": "username",
+                   "type": "STRING",
+                   "mode": "NULLABLE"
+               }
+           ]
+       }
+   ]
+}

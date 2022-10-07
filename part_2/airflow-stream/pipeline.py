@@ -3,7 +3,6 @@ import argparse, json, typing, os
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 from apache_beam.options.pipeline_options import GoogleCloudOptions
-from apache_beam.transforms.combiners import CountCombineFn
 
 '''
 Constant
@@ -14,7 +13,7 @@ topic_id = 'pubsub-stream-filter'
 class GetTimestamp(beam.DoFn):
     def process(self, element, window=beam.DoFn.WindowParam):
         window_start = window.start.to_utc_datetime().strftime("%Y-%m-%dT%H:%M:%S")
-        output = {'timestamp': window_start, 'language': element.lang, 'tweet_count': element.tweet_count}
+        output = {'timestamp': window_start, 'tweet_count': element.tweet_count}
         yield output
 
 
@@ -25,7 +24,6 @@ class PerLangAggregation(typing.NamedTuple):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-
     parser.add_argument('--project_id', type=str, required=True)
     parser.add_argument('--input_topic', type=str, required=True)
 
@@ -153,7 +151,7 @@ def run():
     # aggregate tweets by window and write to BQ
     (raw_tweets
         | "Window" >> beam.WindowInto(beam.window.FixedWindows(window_size))
-        | "Aggregate per language" >> beam.combiners.Count.Globally()
+        | "Aggregate per window" >> beam.combiners.Count.PerKey('tweet_count')
         | "Add Timestamp" >> beam.ParDo(GetTimestamp())
         | "Write agg to bigquery" >> beam.io.WriteToBigQuery(
             agg_output_table_name,
@@ -165,7 +163,7 @@ def run():
         )
      )
 
-    p.run().wait_until_finish(300000)
+    p.run().wait_until_finish(10000)
 
 
 if __name__ == "__main__":
