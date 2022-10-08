@@ -119,3 +119,5 @@ At the console, go to [Eventarc](https://console.cloud.google.com/eventarc/) and
 ### Challenges
 1. Unable to use Workflow to input variable to another cloud function due to error 500 link
 <br>These intermittent 500s are due to requests timing out in the pending queue while waiting for a clone to be able to service the request. This is quite common for GCF apps when they attempt to scale up extremely rapidly. The best approach would be to configure your workload so that they don't have such sharp spikes from ~0 QPS - e.g. if you ramp up traffic gradually over the course of a minute they'll be far less likely to see these errors.
+
+1. [Get recent count (7 days)](part_2/function-count-recent/count_recent.sql)
