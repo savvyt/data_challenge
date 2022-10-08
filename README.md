@@ -98,9 +98,11 @@ At the console, go to [Eventarc](https://console.cloud.google.com/eventarc/) and
 ### 3. Create BigQuery dataset and table
 [Function search recent](part_2/function-search-recent/main.py) will write your tweets and users in the past 15 minutes to BigQuery, so it would be necessary to create the dataset and tables beforehand. Update the [main.py](part_2/function-search-recent/main.py) if you decided to give different name to your tables.
 ### 4. Deploy [Tweet Streaming](../02.%20Twitter/tweet-streaming) to stream the tweet data
+
 ### TO DO
-1. Fix timeout with Cloud Function
-1. Apply Airflow or Dataflow to automate and better tracking the ETL job
+1. Fix timeout with Cloud Function.
+1. Apply Airflow or Dataflow to automate and better tracking the ETL job.
+1. create new branch and apply proper CI/CD. Not done in this POC because of time limitation.
 
 ### Challenges
 1. Unable to use Workflow to input variable to another cloud function due to error 500 link
