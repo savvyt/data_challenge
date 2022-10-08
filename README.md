@@ -108,7 +108,7 @@ There are several ways to satisfy the requirement:
 1. add `pubsub` topic as `function` argument
 1. check and compare count: directly via Twitter API vs these self developed functions
 1. use `airflow` to automate and better tracking the ETL job
-1. set cloud scheduler to trigger `function` every 5 seconds
+1. set cloud scheduler to trigger [Functions 4: Filtered stream](part_2/filtered-stream) every 10 minutes (max timeout for arc event triggered Function) with latest event
 1. set queueing and ACK in `pubsub` message/ eventarc
 1. check Twitter API request limit for several endpoints used in the `functions`
 1. check how to set up refresh rate in `Data Studio`
