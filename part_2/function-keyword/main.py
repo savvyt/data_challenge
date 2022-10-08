@@ -9,8 +9,11 @@ curl -m 70 -X POST <<functions URL endpoint>> \
 }'
 2. Publish message to Pub/Sub topic
 '''
-
+import os, json
 from google.cloud import pubsub_v1
+
+project_id=os.getenv('GOOGLE_CLOUD_PROJECT')
+topic_id = os.getenv('topic_id')
 
 def test(request):
     # Get query input from user via HTTPS
@@ -19,8 +22,8 @@ def test(request):
     # Establish Pub/Sub client
     publisher = pubsub_v1.PublisherClient()
     topic_name = 'projects/{project_id}/topics/{topic}'.format(
-        project_id='extended-study-364220',
-        topic='pubsub-test-keyword',
+        project_id=project_id,
+        topic=topic_id,
     )
 
     # Publish message to Pub/Sub topic specified above as a bytestring

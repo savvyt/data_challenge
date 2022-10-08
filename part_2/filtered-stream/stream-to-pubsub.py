@@ -19,7 +19,7 @@ classifier = TextClassifier.load('en-sentiment') # Text classifier but for Enngl
 
 def write_to_pubsub(data, stream_rule):
     '''
-    'Write to Pub/Sub
+    Write json data to pubsub
     '''
     data["stream_rule"] = stream_rule
     data_formatted = json.dumps(data).encode("utf-8")
@@ -58,11 +58,12 @@ class Client(tweepy.StreamingClient):
 
         write_to_pubsub(result, self.stream_rule)
 
-# @functions_framework.cloud_event
-# def hello_pubsub(cloud_event):
-if __name__ == "__main__":
-    # stream_rule = base64.b64decode(cloud_event.data["message"]["data"]).decode('UTF-8')
-    stream_rule = 'kahoot'
+@functions_framework.cloud_event
+def hello_pubsub(cloud_event):
+    '''
+    decode message from arc event
+    '''
+    stream_rule = base64.b64decode(cloud_event.data["message"]["data"]).decode('UTF-8')
     tweet_fields = ['id', 'text', 'author_id', 'created_at','public_metrics']
     user_fields = ['id','username']
     expansions = ['author_id']
@@ -78,4 +79,4 @@ if __name__ == "__main__":
     # add new rules and run stream
     streaming_client.add_rules(tweepy.StreamRule(stream_rule))
     streaming_client.filter(tweet_fields=tweet_fields, expansions=expansions, user_fields=user_fields)
-    # return f"Streaming for keyword: {stream_rule}"
+    return f"Streaming for keyword: {stream_rule}"
