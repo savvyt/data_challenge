@@ -35,7 +35,7 @@ Twitter API
 <img src="Flowcharts%20-%20Flowchart%20(2).png" width="500">
 
 
-*Function 2, 3, and 4 are created separately so that when user input new keyword, then recent 7 days, 1 minute, 5 minutes, 10 minutes counts can be generated instantly.*
+*Function 2, 3, and 4 are created separately so that when user input new keyword, then recent 7 days, 1 minute, 5 minutes, and 15 minutes counts can be generated instantly.*
 
 ### 1. [Functions 1: Input Keyword](part_2/function-keyword)
 User is expected to input HTTPS Post to the function. Example from Google Cloud Shell:
