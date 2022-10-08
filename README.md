@@ -23,6 +23,8 @@ Solution: [query](part_1/median_second_third_change.sql)
 1. check how to set up refresh rate in `Data Studio`
 1. check memory limit in `Cloud Function`when importing `Text Classifier`from Flair as continuously getting error 
 1. add lat updated datetime to the `Data Studio`report
+1. add try and exception to better catch error in the function
+1. add alert if `function` not returning > 5 seconds or if get error
 
 ## Problem
 Create a proof-of-concept for a tool that allows the user to specify a search term and receive every five seconds an updated output of some metrics about tweets that contain the search term.
@@ -35,6 +37,10 @@ The specific insights the tool should provide in its output are:
 1. Within tweets matching the search term, who were the top ten tweeps (Twitter users) who tweeted the most in the last 1, 5 and 15 minutes?
 1. What is the sentiment of tweets matching the search term over the last 1, 5 and 15 minutes?
 
+## FLow
+1. User input keyword to CF1
+1. CF1 publish message to topic1
+1. Topic1 triggers CF2, CF3, and CF4. CF2 = count recent 7 days tweets. CF3 search and filter past 15 minutes tweets. CF4 will create rule from CF1 and filter stream with the created rule. CF2 and CF4 will publish message to topic2 and topic3. CF3 will 
 ## Architecture Research
 There are several ways to satisfy the requirement:
 ### 1. Virtual machine

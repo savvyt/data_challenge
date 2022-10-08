@@ -1,4 +1,10 @@
-import base64, json, tweepy, os, functions_framework, flair
+'''
+Google Cloud Function (Main: hello_pubsub)
+1. Triggered by Pub/Sub via arc event push
+2. Publish filtered_stream message to Pub/Sub topic
+'''
+
+import base64, json, tweepy, os, flair #, functions_framework
 from google.cloud import pubsub_v1
 from flair.models import TextClassifier
 from flair.data import Sentence
@@ -9,9 +15,12 @@ CONSTANT
 project_id=os.getenv('GOOGLE_CLOUD_PROJECT')
 bearer=os.getenv('bearer')
 topic_id = os.getenv('topic_id')
-classifier = TextClassifier.load('en-sentiment')
+classifier = TextClassifier.load('en-sentiment') # Text classifier but for Ennglish only (!)
 
 def write_to_pubsub(data, stream_rule):
+    '''
+    'Write to Pub/Sub
+    '''
     data["stream_rule"] = stream_rule
     data_formatted = json.dumps(data).encode("utf-8")
     id = data["id"].encode("utf-8")
@@ -26,10 +35,13 @@ def write_to_pubsub(data, stream_rule):
     print(future.result())
 
 def sentiment(text):
-        sentence = flair.data.Sentence(text)
-        classifier.predict(sentence)
-        label_score = sentence.labels[0].to_dict()['value']
-        return label_score
+    '''
+    Get sentiment score
+    '''
+    sentence = flair.data.Sentence(text)
+    classifier.predict(sentence)
+    label_score = sentence.labels[0].to_dict()['value']
+    return label_score
 
 class Client(tweepy.StreamingClient):
     def __init__(self, bearer_token, stream_rule):
