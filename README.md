@@ -29,6 +29,8 @@ Twitter API
 |Recent search|https://api.twitter.com/2/tweets/search/recent|Functions 3: Search recent|
 |Filtered stream|https://api.twitter.com/2/tweets/search/stream|Functions 4: Filtered stream|
 
+*Twitter API rate limits check [here](https://developer.twitter.com/en/docs/twitter-api/rate-limits)*
+
 ## Flow
 <img src="Flowcharts%20-%20Flowchart%20(2).png" width="500">
 
@@ -113,7 +115,7 @@ There are several ways to satisfy the requirement:
 1. use `airflow` to automate and better tracking the ETL job
 1. set cloud scheduler to trigger [Functions 4: Filtered stream](part_2/filtered-stream) every 10 minutes (max timeout for arc event triggered Function) with latest event
 1. set queueing and ACK in `pubsub` message/ eventarc
-1. check Twitter API request limit for several endpoints used in the `functions`
+1. check [Twitter API request limit](https://developer.twitter.com/en/docs/twitter-api/rate-limits) for several endpoints used in the `functions`
 1. check how to set up refresh rate in `Data Studio`
 1. check memory limit in `Cloud Function`when importing `Text Classifier` from Flair as continuously getting error 
 1. add lat updated datetime to the `Data Studio`report
