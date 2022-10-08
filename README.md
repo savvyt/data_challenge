@@ -71,6 +71,9 @@ At the console, go to [Eventarc](https://console.cloud.google.com/eventarc/) and
 - `Pub/Sub 3: Stream` the push message to `Big Query` 'Stream' table where data is appended/ queued (not overwriten)
 - It would be necessary to create the dataset and tables beforehand. Update the [stream-to-pubsub.py](part_2/filtered-stream/stream-to-pubsub.py) if you decided to give different name to your table.
 
+### 6. Visualization [custom SQL](part_2/data-studio-sql)
+- Connect from `Data Studio`to `Big Query`using custom SQL for each 1, 5, 15 minutes periode
+
 ## Architecture Research
 There are several ways to satisfy the requirement:
 ### 1. Virtual machine
