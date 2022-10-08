@@ -14,7 +14,7 @@ CONSTANT
 '''
 project_id=os.getenv('GOOGLE_CLOUD_PROJECT')
 dataset_name=os.getenv('dataset_name') # BigQuery dataset
-table_name=os.getenv('table_name') # BigQuery table
+table_name='dump_sent' #os.getenv('table_name') # BigQuery table
 bearer=os.getenv('bearer')
 search_url = "https://api.twitter.com/2/tweets/search/recent"  # Twitter API end point
 

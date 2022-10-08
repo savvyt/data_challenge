@@ -9,6 +9,7 @@ CONSTANT
 project_id=os.getenv('GOOGLE_CLOUD_PROJECT')
 bearer=os.getenv('bearer')
 topic_id = os.getenv('topic_id')
+classifier = TextClassifier.load('en-sentiment')
 
 def write_to_pubsub(data, stream_rule):
     data["stream_rule"] = stream_rule
@@ -53,7 +54,6 @@ def hello_pubsub(cloud_event):
     expansions = ['author_id']
 
     streaming_client = Client(bearer, stream_rule)
-    classifier = TextClassifier.load('en-sentiment')
 
     # remove existing rules
     rules = streaming_client.get_rules().data
