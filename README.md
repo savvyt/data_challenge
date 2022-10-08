@@ -13,7 +13,7 @@ Objective: SQL query to find the median time between the second and third profil
 Solution: [query](part_1/median_second_third_change.sql)
 
 # Part 2
-## To DO
+## TO DO 
 1. add `pubsub` topic as `function` argument
 1. check and compare count: directly via Twitter API vs these self developed functions
 1. ETL with `airflow`
@@ -21,25 +21,18 @@ Solution: [query](part_1/median_second_third_change.sql)
 1. set queueing and ACK in `pubsub` message/ eventarc
 1. check Twitter API request limit for several endpoints used in the `functions`
 1. check how to set up refresh rate in `Data Studio`
-1. check memory limit in `Cloud Function`when importing `Text Classifier`from Flair as continuously getting error 
+1. check memory limit in `Cloud Function`when importing `Text Classifier` from Flair as continuously getting error 
 1. add lat updated datetime to the `Data Studio`report
 1. add try and exception to better catch error in the function
 1. add alert if `function` not returning > 5 seconds or if get error
 
-## Problem
-Create a proof-of-concept for a tool that allows the user to specify a search term and receive every five seconds an updated output of some metrics about tweets that contain the search term.
-The specific insights the tool should provide in its output are:
-1. What is the total count of tweets matching the search term seen so far?
-1. How many tweets containing the search term were there in the last 1, 5 and 15 minutes?
-1. What are the ten most frequent terms (excluding the search term) that appear in tweets containing the search term over the last 1, 5 and 15 minutes?
-1. Within tweets matching the search term, who were the top ten tweeps (Twitter users) who tweeted the most in the last 1, 5 and 15 minutes?
-1. What is the sentiment of tweets matching the search term over the last 1, 5 and 15 minutes?
 
-## FLow
-1. User input keyword to CF1
-1. CF1 publish message to topic1
-1. Topic1 triggers CF2, CF3, and CF4. CF2 = count recent 7 days tweets. CF3 search and filter past 15 minutes tweets. CF4 will create rule from CF1 and filter stream with the created rule. CF2 and CF4 will publish message to topic2 and topic3. CF3 will 
-![Flow](Flowcharts%20-%20Flowchart%20(1).png)
+## Flow
+<img src="Flowcharts%20-%20Flowchart%20(2).png" width="500">
+
+
+*Function 2, 3, and 4 are created separately so that when user input new keyword, then recent 7 days, 1 minute, 5 minutes, 10 minutes counts can be generated instantly. These 3 functions are run by cloud scheduler, and also can be triggered by PubSub 1.*
+
 ## Architecture Research
 There are several ways to satisfy the requirement:
 ### 1. Virtual machine
