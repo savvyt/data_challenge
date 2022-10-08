@@ -39,14 +39,6 @@ def connect_to_endpoint(url, params, next_token = None):
         raise Exception(response.status_code, response.text)
     return response.json()
 
-# def bq_load(table_name, value):
-#     '''
-#     function 3: This function just converts your pandas dataframe into a bigquery table, 
-#     you'll also need to designate the name and location of the table in the variable 
-#     names below.
-#     '''
-#     value.to_gbq(destination_table='{}.{}'.format(dataset_name, table_name), project_id=project_id, if_exists='replace')
-
 def bq_load (table_name, value):
     client = bigquery.Client(project=project_id)
 
@@ -60,12 +52,12 @@ def bq_load (table_name, value):
     )
     job.result()
 # Triggered from a message on a Cloud Pub/Sub topic.
-# @functions_framework.cloud_event
-# def hello_pubsub(cloud_event):
-if __name__ == "__main__":
+@functions_framework.cloud_event
+def hello_pubsub(cloud_event):
+# if __name__ == "__main__":
     # Get query from arc event
-    # name = base64.b64decode(cloud_event.data["message"]["data"])
-    name = 'trondheim'
+    name = base64.b64decode(cloud_event.data["message"]["data"])
+    # name = 'azure'
 
     # Build search query
     query_params = {'query': name
@@ -86,47 +78,31 @@ if __name__ == "__main__":
         # Connect to API end point and get response
         json_response = connect_to_endpoint(search_url, query_params, next_token)
         result_count = json_response.get('meta').get('result_count') 
-        # tweet = json.dumps(json_response)
 
         if result_count == 0:
             # Break if no tweet is returned
             flag = False
         else:
-            # Divide response into two parts, tweet and user and convert t two separate data frame
-            # tweet = json_response['data']
-            # user = json_response['includes']['users']
-            # tweet = pd.DataFrame(json_response['data'])
-            # user = pd.DataFrame(json_response['includes']['users'])
-
             # Pagination. Get next response if any, and append to the list
             if 'next_token' in json_response['meta']:
                   next_token = json_response['meta']['next_token']
-                #   tweet = pd.concat([tweet, pd.DataFrame(json_response['data'])])
-                #   user = pd.concat([user, pd.DataFrame(json_response['includes']['users'])])
                   count += result_count
+                  
+                  # Divide response into two parts, tweet and user as they have different length in response
                   tweet += json_response['data']
                   user += json_response['includes']['users']
             
             else:
                   len_tweet = len(json_response['data'])
-                #   len_user = len(pd.DataFrame(json_response['includes']['users']))
                   count += result_count
                   if len_tweet > 0:
                     tweet += json_response['data']
                     user += json_response['includes']['users']
-                    #  tweet = pd.concat([tweet, pd.DataFrame(json_response['data'])])
-                #   if len_user > 0:
-                #      user = pd.concat([user, pd.DataFrame(json_response['includes']['users'])])
 
                   flag = False
-    
-    # Append query as a column to the tweet table
-    # tweet['query'] = name
 
-    # Load data as string to BigQuery tables and drop duplicates
-    # TO DO: load directly from JSON response using pre-defined schema and combine result into one table (instead of two)
-    [x.update(y) for x in tweet for y in user]
+    # # Append query as a column to the tweet table
+    [x.update(y) for x in tweet for y in user if x['author_id'] == y['id']]
     bq_load('dump_recent',tweet)
-    # bq_load('tweet', tweet.astype(str).drop_duplicates())
-    # bq_load('user', user.astype(str).drop_duplicates())
-    # return f"Counting for keyword: {name}, total count: {count}"
+    
+    return f"Counting for keyword: {name}, total count: {count}"
