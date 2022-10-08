@@ -1,74 +1,85 @@
+// topic and big query table avro schema for filtered-stream function
 {
-   "fields": [
-       {
-           "name": "author_id",
-           "type": "STRING"
-       },
-       {
-           "name": "created_at",
-           "type": "STRING",
-           "mode": "NULLABLE"
-       },
-       {
-           "name": "id",
-           "type": "STRING"
-       },
-       {
-           "name": "stream_rule",
-           "type": "STRING",
-       },
-       {
-           "name": "text",
-           "type": "STRING",
-       },
-       {
-           "name": "public_metrics",
-           "type": "RECORD",
-           "mode": "NULLABLE",
-           "fields": [
-               {
-                   "name": "like_count",
-                   "type": "INT",
-                   "mode": "NULLABLE"
-               },
-               {
-                   "name": "quote_count",
-                   "type": "INT",
-                   "mode": "NULLABLE"
-               },
-               {
-                   "name": "reply_count",
-                   "type": "INT",
-                   "mode": "NULLABLE"
-               },
-               {
-                   "name": "retweet_count",
-                   "type": "INT",
-                   "mode": "NULLABLE"
-               }
-           ]
-       },
-       {
-           "name": "user",
-           "type": "RECORD",
-           "mode": "NULLABLE",
-           "fields": [
-               {
-                   "name": "id",
-                   "type": "STRING",
-                   "mode": "NULLABLE"
-               },
-               {
-                   "name": "name",
-                   "type": "STRING",
-                   "mode": "NULLABLE"
-               },
-               {
-                   "name": "username",
-                   "type": "STRING",
-                   "mode": "NULLABLE"
-               }
-           ]
-       }
-   ]
-}
+    "name": "MyClass",
+    "type": "record",
+    "namespace": "com.acme.avro",
+    "fields": [
+      {
+        "name": "author_id",
+        "type": "string"
+      },
+      {
+        "name": "created_at",
+        "type": "string"
+      },
+      {
+        "name": "edit_history_tweet_ids",
+        "type": {
+          "type": "array",
+          "items": "string"
+        }
+      },
+      {
+        "name": "id",
+        "type": "string"
+      },
+      {
+        "name": "public_metrics",
+        "type": {
+          "name": "public_metrics",
+          "type": "record",
+          "fields": [
+            {
+              "name": "retweet_count",
+              "type": "int"
+            },
+            {
+              "name": "reply_count",
+              "type": "int"
+            },
+            {
+              "name": "like_count",
+              "type": "int"
+            },
+            {
+              "name": "quote_count",
+              "type": "int"
+            }
+          ]
+        }
+      },
+      {
+        "name": "text",
+        "type": "string"
+      },
+      {
+        "name": "user",
+        "type": {
+          "name": "user",
+          "type": "record",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "username",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      {
+        "name": "sentiment",
+        "type": "string"
+      },
+      {
+        "name": "stream_rule",
+        "type": "string"
+      }
+    ]
+  }
