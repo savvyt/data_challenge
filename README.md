@@ -20,6 +20,8 @@ Solution: [query](part_1/median_second_third_change.sql)
 1. set cloud scheduler to trigger function every 5 seconds
 1. set queueing and ACK in pubsub message/ eventarc
 1. check Twitter API request limit for several endpoints used in the functions
+1. check how to set up refresh rate in Data Studio
+1. check memory limit in `Cloud Function`when importing `Text Classifier`from Flair as continuously getting error 
 
 ## Problem
 Create a proof-of-concept for a tool that allows the user to specify a search term and receive every five seconds an updated output of some metrics about tweets that contain the search term.
