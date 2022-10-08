@@ -13,6 +13,14 @@ Objective: SQL query to find the median time between the second and third profil
 Solution: [query](part_1/median_second_third_change.sql)
 
 # Part 2
+## To DO
+1. add pubsub topic as function argument
+1. check and compare count: directly via Twitter API vs these self developed functions
+1. ETL with airflow
+1. set cloud scheduler to trigger function every 5 seconds
+1. set queueing and ACK in pubsub message/ eventarc
+1. check Twitter API request limit for several endpoints used in the functions
+
 ## Problem
 Create a proof-of-concept for a tool that allows the user to specify a search term and receive every five seconds an updated output of some metrics about tweets that contain the search term.
 The specific insights the tool should provide in its output are:
