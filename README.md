@@ -31,8 +31,6 @@ Create a proof-of-concept for a tool that allows the user to specify a search te
 The specific insights the tool should provide in its output are:
 1. What is the total count of tweets matching the search term seen so far?
 1. How many tweets containing the search term were there in the last 1, 5 and 15 minutes?
-
-**not-finished**
 1. What are the ten most frequent terms (excluding the search term) that appear in tweets containing the search term over the last 1, 5 and 15 minutes?
 1. Within tweets matching the search term, who were the top ten tweeps (Twitter users) who tweeted the most in the last 1, 5 and 15 minutes?
 1. What is the sentiment of tweets matching the search term over the last 1, 5 and 15 minutes?
@@ -41,6 +39,7 @@ The specific insights the tool should provide in its output are:
 1. User input keyword to CF1
 1. CF1 publish message to topic1
 1. Topic1 triggers CF2, CF3, and CF4. CF2 = count recent 7 days tweets. CF3 search and filter past 15 minutes tweets. CF4 will create rule from CF1 and filter stream with the created rule. CF2 and CF4 will publish message to topic2 and topic3. CF3 will 
+![Flow](Flowcharts%20-%20Flowchart%20(1).png)
 ## Architecture Research
 There are several ways to satisfy the requirement:
 ### 1. Virtual machine
