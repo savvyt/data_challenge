@@ -4,9 +4,10 @@ Google Cloud Function (Main: hello_pubsub)
 2. Publish count_recent message to Pub/Sub topic to search recent tweet for the past 7 days
 3. Load data to Big Query
 '''
-import base64, pandas as pd, json, requests, pandas_gbq, os, datetime
-from pandas.io import gbq
+import base64, json, requests, os, datetime, flair #, functions_framework
 from google.cloud import bigquery
+from flair.models import TextClassifier
+from flair.data import Sentence
 
 '''
 CONSTANT
@@ -40,11 +41,18 @@ def connect_to_endpoint(url, params, next_token = None):
         raise Exception(response.status_code, response.text)
     return response.json()
 
+def sentiment(text):
+        sentence = flair.data.Sentence(text)
+        classifier.predict(sentence)
+        label_score = sentence.labels[0].to_dict()
+        return label_score
+
 def bq_load (table_name, value):
     client = bigquery.Client(project=project_id)
 
     table_id = '{}.{}.{}'.format(project_id, dataset_name, table_name)
 
+    # write_disposition='WRITE_TRUNCATE' will overwrite existing data as this function is only called when user input new keyword
     job_config = bigquery.LoadJobConfig( 
         write_disposition='WRITE_TRUNCATE'
     )
@@ -52,13 +60,14 @@ def bq_load (table_name, value):
         value, table_id, job_config=job_config
     )
     job.result()
+
 # Triggered from a message on a Cloud Pub/Sub topic.
-@functions_framework.cloud_event
-def hello_pubsub(cloud_event):
-# if __name__ == "__main__":
+# @functions_framework.cloud_event
+# def hello_pubsub(cloud_event):
+if __name__ == "__main__":
     # Get query from arc event
-    name = base64.b64decode(cloud_event.data["message"]["data"])
-    # name = 'azure'
+    # name = base64.b64decode(cloud_event.data["message"]["data"])
+    name = 'norge'
 
     # Build search query
     query_params = {'query': name
@@ -68,6 +77,8 @@ def hello_pubsub(cloud_event):
         , 'user.fields' : 'id,username'
         , 'tweet.fields': 'id,text,author_id,created_at,public_metrics'
         , 'next_token' : {}}
+
+    classifier = TextClassifier.load('en-sentiment')
 
     flag = True
     next_token = None # For pagination
@@ -102,10 +113,13 @@ def hello_pubsub(cloud_event):
 
                   flag = False
 
+    # Get sentiment for text
+    [x.update(sentiment(x['text'])) for x in tweet]
+
     # Append user list dict to tweet list dic with join key on user id
     [x.update(y) for x in tweet for y in user if x['author_id'] == y['id']]
 
     # Add to Big Query
     bq_load(table_name,tweet)
     
-    return f"Counting for keyword: {name}, total count: {count}"
+    # return f"Counting for keyword: {name}, total count: {count}"

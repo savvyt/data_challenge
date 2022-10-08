@@ -53,6 +53,7 @@ def hello_pubsub(cloud_event):
     expansions = ['author_id']
 
     streaming_client = Client(bearer, stream_rule)
+    classifier = TextClassifier.load('en-sentiment')
 
     # remove existing rules
     rules = streaming_client.get_rules().data

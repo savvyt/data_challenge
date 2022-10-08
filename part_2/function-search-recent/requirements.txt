@@ -1,4 +1,3 @@
 functions-framework==3.*
-pandas
-pandas_gbq
-pandas.io
+requests
+google-cloud-bigquery
