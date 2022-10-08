@@ -39,14 +39,26 @@ def connect_to_endpoint(url, params, next_token = None):
         raise Exception(response.status_code, response.text)
     return response.json()
 
-def bq_load(table_name, value):
-    '''
-    function 3: This function just converts your pandas dataframe into a bigquery table, 
-    you'll also need to designate the name and location of the table in the variable 
-    names below.
-    '''
-    value.to_gbq(destination_table='{}.{}'.format(dataset_name, table_name), project_id=project_id, if_exists='replace')
+# def bq_load(table_name, value):
+#     '''
+#     function 3: This function just converts your pandas dataframe into a bigquery table, 
+#     you'll also need to designate the name and location of the table in the variable 
+#     names below.
+#     '''
+#     value.to_gbq(destination_table='{}.{}'.format(dataset_name, table_name), project_id=project_id, if_exists='replace')
 
+def bq_load (table_name, value):
+    client = bigquery.Client(project=project_id)
+
+    table_id = '{}.{}.{}'.format(project_id, dataset_name, table_name)
+
+    job_config = bigquery.LoadJobConfig( 
+        write_disposition='WRITE_TRUNCATE'
+    )
+    job = client.load_table_from_json(
+        value, table_id, job_config=job_config
+    )
+    job.result()
 # Triggered from a message on a Cloud Pub/Sub topic.
 # @functions_framework.cloud_event
 # def hello_pubsub(cloud_event):
