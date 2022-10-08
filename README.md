@@ -35,7 +35,6 @@ Twitter API
 
 *Function 2, 3, and 4 are created separately so that when user input new keyword, then recent 7 days, 1 minute, 5 minutes, 10 minutes counts can be generated instantly. These 3 functions are run by cloud scheduler, and also can be triggered by PubSub 1.*
 
-* Functions 3, search recent limited only upto last 15 minutes as per requirement. Then in `Big Query`
 ### 1. [Functions 1: Input Keyword](part_2/function-keyword)
 User is expected to input HTTPS Post to the function. Example from Google Cloud Shell:
 ```
@@ -57,13 +56,20 @@ At the console, go to [Eventarc](https://console.cloud.google.com/eventarc/) and
 
 ### 3. [Functions 2: Count recent](part_2/function-count-recent)
 - Fired one time when user input new keyword to get recent 7 days tweets count.
-- Write to Pub/Sub 2: Count
-- Pub/Sub 2: Count the push message to `Big Query`'Count' table
+- Write to `Pub/Sub 2: Count`
+- `Pub/Sub 2: Count` will push the count message to `Big Query` 'Count' table where data is appended/ queued (not overwriten)
+- It would be necessary to create the dataset and tables beforehand. Update the [main.py](part_2/function-search-recent/main.py) if you decided to give different name to your table.
 
-### 4. 
+### 4. [Functions 3: Search recent](part_2/function-search-recent)
+- Fired one time when user input new keyword to get search recent tweets 
+- Limited only up to last 15 minutes as per requirement
+- Write directly to `Big Query` 'Recent' table where data is truncated
 
-Create BigQuery dataset and table
-[Function search recent](part_2/function-search-recent/main.py) will write your tweets and users in the past 15 minutes to BigQuery, so it would be necessary to create the dataset and tables beforehand. Update the [main.py](part_2/function-search-recent/main.py) if you decided to give different name to your tables.
+### 5. [Functions 4: Filtered stream](part_2/filtered-stream)
+- Streaming function
+- Write to `Pub/Sub 3: Stream`
+- `Pub/Sub 3: Stream` the push message to `Big Query` 'Stream' table where data is appended/ queued (not overwriten)
+- It would be necessary to create the dataset and tables beforehand. Update the [stream-to-pubsub.py](part_2/filtered-stream/stream-to-pubsub.py) if you decided to give different name to your table.
 
 ## Architecture Research
 There are several ways to satisfy the requirement:
@@ -112,4 +118,4 @@ There are several ways to satisfy the requirement:
 1. add alert if `function` not returning > 5 seconds or if get error
 1. create new feature branch for changes and apply proper CI/CD
 1. deploy `function`as containerized application
-1. get related terms
+1. get related terms (couldn't find it in the Twitter API endpoint)
