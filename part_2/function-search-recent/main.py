@@ -12,7 +12,8 @@ from google.cloud import bigquery
 CONSTANT
 '''
 project_id=os.getenv('GOOGLE_CLOUD_PROJECT')
-dataset_name=os.getenv('dataset_name') # BigQuery dataset (similar to database)
+dataset_name=os.getenv('dataset_name') # BigQuery dataset
+table_name=os.getenv('table_name') # BigQuery table
 bearer=os.getenv('bearer')
 search_url = "https://api.twitter.com/2/tweets/search/recent"  # Twitter API end point
 
@@ -101,8 +102,10 @@ def hello_pubsub(cloud_event):
 
                   flag = False
 
-    # # Append query as a column to the tweet table
+    # Append user list dict to tweet list dic with join key on user id
     [x.update(y) for x in tweet for y in user if x['author_id'] == y['id']]
-    bq_load('dump_recent',tweet)
+
+    # Add to Big Query
+    bq_load(table_name,tweet)
     
     return f"Counting for keyword: {name}, total count: {count}"
