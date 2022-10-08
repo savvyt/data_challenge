@@ -13,25 +13,57 @@ Objective: SQL query to find the median time between the second and third profil
 Solution: [query](part_1/median_second_third_change.sql)
 
 # Part 2
-## TO DO 
-1. add `pubsub` topic as `function` argument
-1. check and compare count: directly via Twitter API vs these self developed functions
-1. ETL with `airflow`
-1. set cloud scheduler to trigger `function` every 5 seconds
-1. set queueing and ACK in `pubsub` message/ eventarc
-1. check Twitter API request limit for several endpoints used in the `functions`
-1. check how to set up refresh rate in `Data Studio`
-1. check memory limit in `Cloud Function`when importing `Text Classifier` from Flair as continuously getting error 
-1. add lat updated datetime to the `Data Studio`report
-1. add try and exception to better catch error in the function
-1. add alert if `function` not returning > 5 seconds or if get error
 
+## Prereqs
+You'll need: 1) Twitter Developer credentials and 2) a GCP account set up.
+
+Once you have a Twitter Developer account, you'll need an app, API consumer key (and secret), access token (and secret), and bearer token.
+
+(You may need to enable to the relevant APIs on your GCP account - Compute Engine, GCS, Dataflow, and BigQuery. You can do that using the search bar at the top of the GCP interface.)
+
+## Data sources
+Twitter API
+|Type|End Point|Used in|
+|---|---|---|
+|Recent counts|https://api.twitter.com/2/tweets/counts/recent|Functions 2: Count recent|
+|Recent search|https://api.twitter.com/2/tweets/search/recent|Functions 3: Search recent|
+|Filtered stream|https://api.twitter.com/2/tweets/search/stream|Functions 4: Filtered stream|
 
 ## Flow
 <img src="Flowcharts%20-%20Flowchart%20(2).png" width="500">
 
 
 *Function 2, 3, and 4 are created separately so that when user input new keyword, then recent 7 days, 1 minute, 5 minutes, 10 minutes counts can be generated instantly. These 3 functions are run by cloud scheduler, and also can be triggered by PubSub 1.*
+
+* Functions 3, search recent limited only upto last 15 minutes as per requirement. Then in `Big Query`
+### 1. [Functions 1: Input Keyword](part_2/function-keyword)
+User is expected to input HTTPS Post to the function. Example from Google Cloud Shell:
+```
+curl -m 70 -X POST https://pubsub-test-keyword-nibljnhwbq-lz.a.run.app \
+-H "Authorization: bearer $(gcloud auth print-identity-token)" \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "trondheim"
+}'
+````
+
+### 2. Create Pub/Sub topic. 
+Create a `Pub/Sub` topic and name it accordingly (something like `twitter` will work). [Functions 1: Input Keyword] will publish a message to the topic. From the GUI, then press the Trigger Cloud Function button. It will create a new Function where you could then modify and insert your [Functions 2: Count recent](part_2/function-count-recent). Create another trigger and insert your [Functions 3: Search recent](part_2/function-search-recent) to the newly created Function and the same for [Functions 4: Filtered stream].
+
+Under the hood: <br>
+Google will automatically push the message from your topic into an automatically created Subscription. Then a 'Cloud Run' will push your message from the 'Subscription' to the `Function Count Recent`.
+
+At the console, go to [Eventarc](https://console.cloud.google.com/eventarc/) and you could 
+
+### 3. [Functions 2: Count recent](part_2/function-count-recent)
+- Fired one time when user input new keyword to get recent 7 days tweets count.
+- Write to Pub/Sub 2: Count
+- Pub/Sub 2: Count the push message to `Big Query`'Count' table
+
+### 4. 
+
+Create BigQuery dataset and table
+[Function search recent](part_2/function-search-recent/main.py) will write your tweets and users in the past 15 minutes to BigQuery, so it would be necessary to create the dataset and tables beforehand. Update the [main.py](part_2/function-search-recent/main.py) if you decided to give different name to your tables.
 
 ## Architecture Research
 There are several ways to satisfy the requirement:
@@ -66,58 +98,18 @@ There are several ways to satisfy the requirement:
 |---|---|---|---|---|
 |Connection|can be 24/7 except during maintenance window | Not always connected  |Can get disconnected and must restart the process by establishing a new connection. Additionally, to ensure that you do not miss any data, you may need to utilize a Redundant Connection, Backfill, or a Replay stream to mitigate or recover data from disconnections from the stream.|Streaming is problematic because you have to be always connected. And with serverless product you have timeout concern (9 minutes for Cloud Functions V1, 60 minutes for Cloud Run and Cloud Functions V2). However you can imagine to invoke regularly your serverless product, stay connected for a while (let say 1h) and schedule trigger every hour.|
 
-## Prereqs
-You'll need: 1) Twitter Developer credentials and 2) a GCP account set up.
-
-Once you have a Twitter Developer account, you'll need an app, API consumer key (and secret), access token (and secret), and bearer token.
-
-(You may need to enable to the relevant APIs on your GCP account - Compute Engine, GCS, Dataflow, and BigQuery. You can do that using the search bar at the top of the GCP interface.)
-
-## Solution
-```mermaid
-graph TB
-A(Cloud Function POST search term) -->|query|B[Pub/Sub]
-B-->B1(Cloud Function counts/recent)
-B-->B2(Cloud Function search/recent)
-B-->B3(Cloud Function search/stream)
-B1-->C[Big Query tweet.twitter and tweet.user]
-B2-->C
-B3-->C
-C-->D(Data Studio) 
-click A href "https://console.cloud.google.com/functions/details/europe-north1/pubsub-test-keyword?env=gen2&project=extended-study-364220" "pubsub-test-keyword"
-```
-
-### 1. Create [Cloud Function Keyword](part_2/function-keyword)
-User is expected to input HTTPS Post to the function. Example from Google Cloud Shell:
-```
-curl -m 70 -X POST https://pubsub-test-keyword-nibljnhwbq-lz.a.run.app \
--H "Authorization: bearer $(gcloud auth print-identity-token)" \
--H "Content-Type: application/json" \
--d '{
-  "name": "trondheim"
-}'
-````
-### 2. Create Pub/Sub topic. 
-Create a `Pub/Sub` topic and name it accordingly (something like `twitter` will work). Function `Cloud Function Keyword` will publish a message to the topic. From the GUI, then press the Trigger Cloud Function button. It will create a new Function where you could then modify and insert your [Function Count Recent](part_2/function-count-recent). Create another trigger and insert your [Function Search Recent](part_2/function-search-recent) to the newly created Function.
-
-Under the hood: <br>
-Google will automatically push the message from your topic into an automatically created Subscription. Then a 'Cloud Run' will push your message from the 'Subscription' to the `Function Count Recent`.
-
-At the console, go to [Eventarc](https://console.cloud.google.com/eventarc/) and you could 
-### 3. Create BigQuery dataset and table
-[Function search recent](part_2/function-search-recent/main.py) will write your tweets and users in the past 15 minutes to BigQuery, so it would be necessary to create the dataset and tables beforehand. Update the [main.py](part_2/function-search-recent/main.py) if you decided to give different name to your tables.
-### 4. Deploy [Tweet Streaming](../02.%20Twitter/tweet-streaming) to stream the tweet data
-
-## Flow
-1. ### dfgd
-1. ### fdgdf
-### TO DO
-1. Fix timeout with Cloud Function.
-1. Apply Airflow or Dataflow to automate and better tracking the ETL job.
-1. create new branch and apply proper CI/CD. Not done in this POC because of time limitation.
-
-### Challenges
-1. Unable to use Workflow to input variable to another cloud function due to error 500 link
-<br>These intermittent 500s are due to requests timing out in the pending queue while waiting for a clone to be able to service the request. This is quite common for GCF apps when they attempt to scale up extremely rapidly. The best approach would be to configure your workload so that they don't have such sharp spikes from ~0 QPS - e.g. if you ramp up traffic gradually over the course of a minute they'll be far less likely to see these errors.
-
-1. [Get recent count (7 days)](part_2/function-count-recent/count_recent.sql)
+## TO DO 
+1. add `pubsub` topic as `function` argument
+1. check and compare count: directly via Twitter API vs these self developed functions
+1. use `airflow` to automate and better tracking the ETL job
+1. set cloud scheduler to trigger `function` every 5 seconds
+1. set queueing and ACK in `pubsub` message/ eventarc
+1. check Twitter API request limit for several endpoints used in the `functions`
+1. check how to set up refresh rate in `Data Studio`
+1. check memory limit in `Cloud Function`when importing `Text Classifier` from Flair as continuously getting error 
+1. add lat updated datetime to the `Data Studio`report
+1. add try and exception to better catch error in the function
+1. add alert if `function` not returning > 5 seconds or if get error
+1. create new feature branch for changes and apply proper CI/CD
+1. deploy `function`as containerized application
+1. get related terms
