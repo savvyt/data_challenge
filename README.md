@@ -124,3 +124,4 @@ There are several ways to satisfy the requirement:
 1. create new feature branch for changes and apply proper CI/CD
 1. deploy `function`as containerized application
 1. get related terms (couldn't find it in the Twitter API endpoint)
+1. check cost!
