@@ -1,5 +1,7 @@
 import base64, json, tweepy, os, flair
 from google.cloud import pubsub_v1
+from flair.models import TextClassifier
+from flair.data import Sentence
 
 '''
 CONSTANT
@@ -7,6 +9,7 @@ CONSTANT
 project_id=os.getenv('GOOGLE_CLOUD_PROJECT')
 bearer=os.getenv('bearer')
 topic_id = 'pubsub-stream-filter1'
+classifier = TextClassifier.load('en-sentiment')
 
 def write_to_pubsub(data, stream_rule):
     data["stream_rule"] = stream_rule
@@ -22,18 +25,24 @@ def write_to_pubsub(data, stream_rule):
     )
     print(future.result())
 
+def sentiment(text):
+        sentence = flair.data.Sentence(text)
+        classifier.predict(sentence)
+        label_score = sentence.labels[0].to_dict()['value']
+        return label_score
+
 class Client(tweepy.StreamingClient):
     def __init__(self, bearer_token, stream_rule):
         super().__init__(bearer_token)
 
         self.stream_rule = stream_rule
-
     def on_response(self, response):
         tweet_data = response.data.data
         user_data = response.includes['users'][0].data
         # metrics_fiels = response.data.public_metrics
         result = tweet_data
         result["user"] = user_data
+        result['sentiment'] = sentiment(result['text'])
         # result['metric'] = metrics_fiels
 
         write_to_pubsub(result, self.stream_rule)
